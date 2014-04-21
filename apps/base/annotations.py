@@ -695,7 +695,13 @@ def addNote(payload):
         location.w = payload["w"]
         location.h = payload["h"]
         location.page = payload["page"]
-        location.section = M.Membership.objects.get(user=author, ensemble=location.ensemble, deleted=False).section
+        # If a section is set to have its posts go to the entire class by default, we set section to 'None'
+        # even if it exists
+        section = M.Membership.objects.get(user=author, ensemble=location.ensemble, deleted=False).section
+        if section == None:
+            location.section = None
+        else:
+            location.section = None if section.post_to_class else section
 
         #refuse if similar comment
         similar_comments = similar_comments.filter(location__in=M.Location.objects.filter(source=location.source, ensemble=location.ensemble, y=location.y, x=location.x, w=location.w, h=location.h, page=location.page));

@@ -475,6 +475,7 @@ def properties_ensemble_sections(req, id):
     students = {}
     for s in sections:
         students[s] = all_students.filter(section=s)
+
     no_section = all_students.filter(section=None)
     err = ""
     if "action" in req.GET: 
@@ -484,6 +485,7 @@ def properties_ensemble_sections(req, id):
             else:
                 s = M.Section(name=req.POST["name"], ensemble=ensemble)
                 s.save()
+            sections = M.Section.objects.filter(ensemble=ensemble)
         elif req.GET["action"] == "delete" and "section_id" in req.GET:
             s = sections.filter(id=req.GET["section_id"])
             if len(s):
@@ -495,6 +497,14 @@ def properties_ensemble_sections(req, id):
                     return HttpResponseRedirect(req.path)
             else:
                 err = "Cannot find section"
+        elif req.GET["action"] == "update" and "section_id" in req.POST:
+            s = sections.get(id=req.POST["section_id"]);
+            if "scope" in req.POST:
+                if req.POST["scope"] == "section_only":
+                    s.post_to_class = False
+                elif req.POST["scope"] == "whole_class":
+                    s.post_to_class = True
+            s.save()
         elif req.GET["action"] == "reassign" and "membership_id" in req.POST and "section_id" in req.POST:
             if req.POST["section_id"] == "None":
                 s = [None]

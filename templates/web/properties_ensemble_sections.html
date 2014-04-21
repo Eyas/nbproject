@@ -44,16 +44,22 @@ p.error-message:not(:empty) {
 {% block content %}
 
   <h1>Sections for {{ensemble.name}}</h1>
-
+  
 <div class='section'>
 <p class="error-message">{{error_message}}</p>
       <table>
       	<thead><tr><th>Section Name</th><th>Actions</th></tr></thead>
       	<tbody>
-	{% for o in sections %}	
+	  {% for o in sections %}
 		<tr>
 			<td>{{o.name|default:'<span class="lowcontrast">untitled</span>'}}</td>
-            <td><a style='margin-right: 10px' href='?action=delete&section_id={{o.id}}'>Delete</a>
+                        <td>
+                          <select name="post_scope" data-id="{{o.id}}">
+                            <option value="whole_class" {% if o.post_to_class %} selected="selected" {% endif %} >Posts by students in this section default to whole class</option>
+                            <option value="section_only" {% if not o.post_to_class %} selected="selected" {% endif %} >Posts by students in this section default to the section only</option>
+                          </select>
+                        </td>
+                        <td><a style='margin-right: 10px' href='?action=delete&section_id={{o.id}}'>Delete</a>
             </td>
 		</tr>
         {% endfor %}
@@ -112,6 +118,24 @@ p.error-message:not(:empty) {
 </div>
 
 <script type="text/javascript">
+$(function() {
+
+$(document).on("change", "select[name=post_scope]", function() {
+  var section_id = parseInt($(this).attr("data-id"), 10);
+  var val = $(this).val();
+  if (val === "whole_class") {
+    $.post("?action=update&json", {
+      section_id: section_id,
+      scope: "whole_class"
+    });
+  } else if (val === "section_only") {
+    $.post("?action=update&json", {
+      section_id: section_id,
+      scope: "section_only"
+    });
+  }
+});
+
 $(".student-record").each(function() {
   $(this).draggable({
     helper: function() { return $("<div>").addClass("student-record-helper").attr("data-membership-id", $(this).attr("data-membership-id")).text($(this).attr("data-user-firstname") ); } ,
@@ -145,6 +169,7 @@ $(".section-assign").each(function() {
   });
 });
 
+});
 </script>
 
 

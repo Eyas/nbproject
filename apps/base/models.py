@@ -104,6 +104,7 @@ class Folder(models.Model):                                                     
 class Section(models.Model):
     name                = CharField(max_length=255)
     ensemble            = ForeignKey(Ensemble)
+    post_to_class       = BooleanField(default=False)
     def __unicode__(self):
         return "%s %s: %s" % (self.__class__.__name__,self.id,  self.name)
 
