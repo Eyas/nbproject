@@ -15,7 +15,6 @@
  Copyright (c) 2010-2012 Massachusetts Institute of Technology.
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 */
-/*global unescape:true NB:true NB$:true jQuery:true alert:false*/
 (function(GLOB){
     //require auth
     if ("NB$" in window){

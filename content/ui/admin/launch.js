@@ -1,4 +1,3 @@
-/*global $:true NB$:true NB:true $:true */
 (function(GLOB){
     var myJquery = NB$ || $;
     myJquery(function(){

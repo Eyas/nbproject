@@ -7,7 +7,6 @@
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
 */
-/*global jQuery:true console:true*/
 var NB$ = jQuery.noConflict();
 
 (function($) {   

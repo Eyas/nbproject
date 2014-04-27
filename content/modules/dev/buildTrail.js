@@ -8,7 +8,6 @@
  Copyright (c) 2010-2012 Massachusetts Institute of Technology.
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 */
-/*global jQuery:true $:true NB$:true  __nb_userinfo:true NB:true*/
 (function(GLOB){
     if ("NB$" in window){
     var $ = NB$;

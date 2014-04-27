@@ -10,7 +10,6 @@ License
     MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
  */
-/*global jQuery:true*/
 
 (function($) {
     //cf bug 83 need mapping href -> tab index (tabs doesn't use the DOM order after tab dragged)

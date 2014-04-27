@@ -23,7 +23,6 @@
  In your JS: 
  $("#pers1").perspective();
 */
-/*global alert:true jQuery:true console:false*/
 (function($) {
     var P_OBJ = {
     SEP_TOTAL_SIZE: 4,

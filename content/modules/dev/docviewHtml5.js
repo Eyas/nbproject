@@ -1,4 +1,3 @@
-/*global NB:true NB$:true $:true rangy:true alert:true wgxpath:true jQuery:true getElementCSSSelector:true console:true */
 (function(GLOB){
     var _scrollTimerID=null;
     var _scrollCounter=0;

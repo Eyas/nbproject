@@ -17,7 +17,6 @@
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
 */
-/*global $:true NB$:true NB:true $:true */
 (function(GLOB){
     //require auth
     if ("NB$" in window){

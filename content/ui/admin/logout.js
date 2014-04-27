@@ -9,7 +9,6 @@
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
 */
-/*global NB:true  NB$:true $:true*/
 
 (function(GLOB){
     GLOB.pers.init = function(){

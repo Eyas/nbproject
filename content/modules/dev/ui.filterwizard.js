@@ -4,7 +4,6 @@
  *     ui.view.js
  *
 */
-/*global jQuery:true NB$:true */
 (function($) {
     var $str        = "NB$" in window ? "NB$" : "jQuery";
     var V_OBJ = $.extend({},$.ui.view.prototype,{

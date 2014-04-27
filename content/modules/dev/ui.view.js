@@ -10,7 +10,6 @@
  MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
 */
-/*global jQuery:true*/
 (function($) {   
     /*
      * The view object

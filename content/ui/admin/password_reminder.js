@@ -9,7 +9,6 @@ License
     MIT License (cf. MIT-LICENSE.txt or http://www.opensource.org/licenses/mit-license.php)
 
  */
-/*global NB$:true  NB:true*/
 
 (function(GLOB){
     //require auth
