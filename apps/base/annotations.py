@@ -351,7 +351,9 @@ def get_guestfileinfo(id_source):
          }
     if len(ownership)==1:
         if ownership[0].source.type == M.Source.TYPE_YOUTUBE: 
-            o["youtubeinfos"]= UR.model2dict(ownership[0].source.youtubeinfo, None, "id")        
+            o["youtubeinfos"]= UR.model2dict(ownership[0].source.youtubeinfo, None, "id")
+        elif ownership[0].source.type == M.Source.TYPE_HTML5:
+            o["html5infos"]= UR.model2dict(ownership[0].source.html5info, None, "id")
     return o
    
 def get_files(uid, payload):

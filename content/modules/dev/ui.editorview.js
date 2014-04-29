@@ -22,7 +22,7 @@
                 var O        = self.options;
                 self._allowStaffOnly = O.allowStaffOnly;
                 self._allowAnonymous = O.allowAnonymous;
-            }, 
+            },
             _defaultHandler: function(evt){
                 var self        = this;
                 var model        = self._model;
@@ -118,7 +118,8 @@
                     break;
                 case "focus_thread":
                     // We assume the thread is already rendered, we simply focus
-                    $("textarea", self.element).focus();
+                    var $textarea = $("textarea", self.element);
+                    $textarea.focus();
                     break;
                 case "discard_if_empty":
                     // only allow one current editor if draft is not empty
@@ -169,11 +170,11 @@
                                   "<option value='1'>Myself only</option></select><br/>"+checkbox_options+"</td><td class='save-cancel'><button action='save' >Submit</button><button action='discard' >Cancel</button></td></tr> </table></div></div>"].join(""));
                 self.element.append(contents);
                 $("a[role='button']", self.element).click(f_cleanup).hover(function(e){$(this).addClass('ui-state-hover').removeClass('ui-view-semiopaque');},function(e){$(this).removeClass('ui-state-hover').addClass('ui-view-semiopaque');} );
-                var $textarea = $("textarea", self.element).keypress(function(e){
-                        if(e.keyCode === 27 && this.value.length === 0){
-                            f_cleanup();
-                        }
-                    });
+                var $textarea = $("textarea", self.element).keydown(function (e) {
+                    if (e.keyCode === 27 && this.value.length === 0) {
+                        f_cleanup();
+                    }
+                });
                 $textarea.css('minHeight', $textarea.height() + self.element.height() - $("div.notebox", self.element).height() - 42);
                 var f_sel = function(evt, ui){
                     $.L("sel has moved to", self._sel.width(), "x",  self._sel.height(), "+" ,  self._sel.css("left"), "+", self._sel.css("top"));

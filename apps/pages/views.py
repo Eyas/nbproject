@@ -119,7 +119,8 @@ def source(req, n, allow_guest=False):
     if source.type==M.Source.TYPE_YOUTUBE: 
         return __serve_page(req, settings.YOUTUBE_TEMPLATE, allow_guest , mimetype="text/html")
     elif source.type==M.Source.TYPE_HTML5:
-        return HttpResponseRedirect(M.HTML5Info.objects.get(source=source).url)
+        #return HttpResponseRedirect(M.HTML5Info.objects.get(source=source).url)
+        return __serve_page(req, settings.HTML_TEMPLATE, allow_guest, mimetype="text/html")
     else:
         return __serve_page(req, settings.SOURCE_TEMPLATE, allow_guest, mimetype="text/html")
     

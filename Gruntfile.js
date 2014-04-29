@@ -63,10 +63,14 @@ module.exports = function(grunt) {
             MODS.CONTEXTMENU.src_css,
             addPrefix(MODULE_DIR, ["tablesorter/style.css", "calendrical/calendrical.css", "dev/ui.filesview.css"]))
     };  
-    MODS.DOCVIEW = {
+    MODS.DOCVIEW_PDF = {
         src_js: addPrefix(MODULE_DIR,["dev/ui.drawable4.js", "dev/ui.docView.pdf.js" ]),
         src_css:  addPrefix(MODULE_DIR, ["dev/ui.drawable.css", "dev/ui.docView.css"])
-    };  
+    };
+    MODS.DOCVIEW_HTML = {
+        src_js: addPrefix(MODULE_DIR, ["dev/ui.docView.html5interface.js"]),
+        src_css: addPrefix(MODULE_DIR, ["dev/ui.docView.css"])
+    };
     MODS.DOCVIEW_COLLAGE = {
         src_js: addPrefix(MODULE_DIR,["dev/ui.drawable4.js", "dev/ui.docView.collage.js" ]),
         src_css:  addPrefix(MODULE_DIR, ["dev/ui.drawable.css", "dev/ui.docView.css"])
@@ -162,30 +166,48 @@ module.exports = function(grunt) {
 
     TARGETS.EMBED = {
         src_js: [].concat(
-            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js", "jquery_ui/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js", "dev/ui.concierge.js"]), 
-            addPrefix(MODULE_DIR, ["dev/ui.view.js", "dev/ui.perspective.js"]),
-            MODS.NOTEPANEVIEW_DOC.src_js,
-            MODS.THREADVIEW.src_js,
-            MODS.EDITORVIEW.src_js,
-            TARGETS.API.src_js,
-            MODS.RANGY.src_js, 
+            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js", "dev/ui.concierge.js", "dev/iframetransport.js"]),
+            MODS.RANGY.src_js,
             addPrefix(MODULE_DIR, ["wgxpath/wgxpath.install.js"]),
-            addPrefix(MODULE_DIR+"wgxpath/",["termfix.js" ]),
-            addPrefix(UI_DIR,["conf.js"]), 
-            addPrefix(MODULE_DIR, ["dev/pers.js", "dev/docviewHtml5.js", "dev/buildEmbed.js"])
-        ), 
-        dest_js:  DEST_DIR+"embed_NB.js", 
-        src_css: [].concat( 
-            addPrefix(MODULE_DIR, ["jquery_ui/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.css", "ui.perspective.css", "ui.viewport.css", "ui.menu.css", "ui.view.css", "dev/buildEmbed.css"]), 
-            addPrefix(UI_DIR, ["template.css"]),
-            MODS.NOTEPANEVIEW_DOC.src_css, 
-            MODS.THREADVIEW.src_css, 
-            MODS.EDITORVIEW.src_css
+            addPrefix(MODULE_DIR + "wgxpath/", ["termfix.js"]),
+            TARGETS.API.src_js,
+            addPrefix(UI_DIR, ["conf.js", "conf_local.js"]),
+            addPrefix(MODULE_DIR, ["dev/pers.js"]),
+            addPrefix(MODULE_DIR, ["dev/docviewHtml5.js", "dev/buildEmbed.js"])
+        ),
+        dest_js: DEST_DIR+"embed_NB.js", 
+        src_css: [].concat(
+            addPrefix(MODULE_DIR, ["dev/buildEmbed.css"])
         ),
         dest_css:  DEST_DIR+"embed_NB.css",
         servername: servername
     };
 
+    TARGETS.HTMLVIEWER = {
+        src_js: [].concat(
+            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js", "jquery_ui/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js", "dev/ui.concierge.js", "dev/iframetransport.js"]), 
+            addPrefix(MODULE_DIR, ["dev/ui.view.js", "dev/ui.perspective.js"]),
+            TARGETS.API.src_js,
+            MODS.DOCVIEW_HTML.src_js,
+            MODS.NOTEPANEVIEW_DOC.src_js,
+            MODS.THREADVIEW.src_js,
+            MODS.EDITORVIEW.src_js,
+            addPrefix(UI_DIR,["conf.js", "conf_local.js"]),
+            addPrefix(MODULE_DIR, ["dev/pers.js"]),
+            addPrefix(UI_DIR, ["init.htmlviewer.js", "launch.js"])
+        ),
+        dest_js: DEST_DIR+"html5viewer_NB.js",
+        src_css: [].concat(
+            addPrefix(MODULE_DIR, ["jquery_ui/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.css", "ui.perspective.css", "ui.viewport.css", "ui.menu.css", "ui.view.css"]), 
+            addPrefix(UI_DIR, ["template.css"]),
+            MODS.DOCVIEW_HTML.src_css, 
+            MODS.NOTEPANEVIEW_DOC.src_css, 
+            MODS.THREADVIEW.src_css, 
+            MODS.EDITORVIEW.src_css
+        ),
+        dest_css: DEST_DIR+"html5viewer_NB.css",
+        servername: servername
+    };
 
     TARGETS.DESKTOP = {
         src_js: [].concat(
@@ -212,7 +234,7 @@ module.exports = function(grunt) {
         dest_js:  DEST_DIR+"desktop_NB.js",
         dest_css:  DEST_DIR+"desktop.css"
         
-    };    
+    };
 
     TARGETS.LOGIN = {
         src_js: [].concat(
@@ -236,7 +258,7 @@ module.exports = function(grunt) {
             addPrefix(MODULE_DIR, ["dev/ui.view.js", "dev/ui.perspective.js"]),
             TARGETS.API.src_js,
 
-            MODS.DOCVIEW.src_js, 
+            MODS.DOCVIEW_PDF.src_js, 
             MODS.NOTEPANEVIEW_DOC.src_js,
             MODS.THREADVIEW.src_js,
             MODS.EDITORVIEW.src_js,
@@ -247,7 +269,7 @@ module.exports = function(grunt) {
         src_css: [].concat( 
             addPrefix(MODULE_DIR, ["jquery_ui/jquery-ui-1.9.2.custom/css/smoothness/jquery-ui-1.9.2.custom.css", "ui.perspective.css", "ui.viewport.css", "ui.menu.css", "ui.view.css"]), 
             addPrefix(UI_DIR, ["template.css"]),
-            MODS.DOCVIEW.src_css, 
+            MODS.DOCVIEW_PDF.src_css, 
             MODS.NOTEPANEVIEW_DOC.src_css, 
             MODS.THREADVIEW.src_css, 
             MODS.EDITORVIEW.src_css

@@ -207,10 +207,9 @@ COLLAGE_TEMPLATE= "web/collage.html"
 DEV_DESKTOP_TEMPLATE= 'web/desktop%s.xhtml'
 SOURCE_TEMPLATE = "web/source1.html"
 YOUTUBE_TEMPLATE = "web/youtube1.html"
+HTML_TEMPLATE = "web/fileview_html.html"
 GUEST_TUTORIAL_URL = "http://%s/tutorial" % (NB_SERVERNAME,)
 SPREADSHEET_TEMPLATE = "web/spreadsheet.html"
-
-
 
 #for utils_notify
 SMTP_CC_USER    = "planet.nb+cc@gmail.com"

@@ -1,49 +1,13 @@
-(function(GLOB){
+(function($){
+
     var _scrollTimerID=null;
     var _scrollCounter=0;
-    if ("NB$" in window){
-        var $ = NB$;
-    }
 
-    var $str        = "NB$" in window ? "NB$" : "jQuery";
-    var cssApplier = null;
     var lastClicked = {set: [], clicked: null};
 
-    var restore = function(loc) {
-        var sel = rangy.getSelection();
-        sel.restoreCharacterRanges(getElementsByXPath(document, loc.path1)[0], 
-                                   [{backward: loc.path2 === "true",
-                                               characterRange: {
-                                               start: loc.offset1,
-                                               end: loc.offset2
-                                           }
-                                       }]);
-        placeAnnotation(sel, loc);
-    };
-
-    var restoreBatch = function(object, callback) {
-        var start = (new Date()).getTime();
-        var current;
-
-        for (var key in object) {
-            current = (new Date()).getTime();
-            if (current - start > 150) {
-                window.setTimeout(restoreBatch, 10, object, callback);
-                return;
-            }
-
-            restore(object[key]);
-            delete object[key];
-        }
-
-        callback();
-    };
-
-    GLOB.html = {
-        id: "docviewHtml5"
-    };
-
-    GLOB.html.init = function () {
+    var NBHTML = function() {
+        var self = this;
+        self.id = "docviewHtml5";
 
         var countChildChars = function(_char, _this) {
             var char = _char;
@@ -60,42 +24,19 @@
 
         countChildChars(0, $("body")[0]);
 
-        $.concierge.addListeners(GLOB.html,{
-                page: function(evt){
-                   // _render();
-                }, 
-                note_hover: function(event){
-                    $(".nb-comment-highlight[id_item="+event.value+"]").addClass("hovered");
-                }, 
-                note_out: function(event){
-                    $(".nb-comment-highlight[id_item="+event.value+"]").removeClass("hovered");
-                }, 
-                visibility: function(event){
-                    console.warn("TODO", event);
-                },
-                select_thread: function(event){
-                    $(".nb-comment-highlight.selected").removeClass("selected");
-                    $(".nb-comment-highlight[id_item="+event.value+"]").addClass("selected");
+        self.transport = new $.IFrameMessager(function (event) {
 
-                    var viewTop = $(window).scrollTop();
-                    // use window.innerHeight if available, else use document.body.clientHeight,
-                    // else use documentElement.clientHeight
-                    var viewHeight =
-                        window.innerHeight || document.body.clientHeight || window.document.documentElement.clientHeight;
-                    var viewBottom =
-                        viewTop +
-                        (viewHeight) * 0.9;
-                    var elementTop = $(".nb-comment-highlight[id_item="+event.value+"]").offset().top;
+            if (event.type === "trigger") {
 
-                    if (viewTop > elementTop || viewBottom < elementTop) {
-
-                        $("body, html").animate({
-                            scrollTop: $(".nb-comment-highlight[id_item="+event.value+"]").offset().top - viewHeight / 4
-                        });
-                     }
+                if (event.body.type in self.listeners) {
+                    (self.listeners[event.body.type])(event.body);
                 }
-            }, 
-            GLOB.html.id);
+
+            } else if (event.type === "update") {
+                self.update(event.body.action, event.body.payload, event.body.items_fieldname);
+            }
+
+        });
 
         rangy.init();
         
@@ -106,17 +47,30 @@
                     _scrollTimerID =  null;
                 }
                 timerID = window.setTimeout(function(){
-                        $.concierge.logHistory("scrolling", ["s",$("html").scrollTop(),$(window).height(), _scrollCounter++, $("body").height(),$.concierge.get_state("file") ].join(","));
-                    }, 300);               
-                _scrollTimerID =  timerID;    
-            });
+
+                    var send_value = {
+                        log_event: "scrolling",
+                        log_value: [
+                            "s",
+                            $("html").scrollTop(),$(window).height(),
+                            _scrollCounter++,
+                            $("body").height(),
+                            self.concierge("get_state", ["file"])
+                        ].join(",")
+                    };
+
+                    self.trigger("logHistory", send_value);
+
+                }, 300);               
+            _scrollTimerID =  timerID;
+        });
         
         // Wrap elements with nb-comment-fresh which is then selected by jQuery and operated on properly;
         // the styled element must have an nb-comment-highlight class.
-        cssApplier = rangy.createCssClassApplier("nb-comment-fresh", { normalize: true });
+        self.cssApplier = rangy.createCssClassApplier("nb-comment-fresh", { normalize: true });
 
         // Make sure concierge won't steal our keys!
-        $.concierge.keydown_block = false;
+        //$.concierge.keydown_block = false;
 
         // Global key-down monitor
         $(document).keydown(function(event) {
@@ -139,7 +93,7 @@
 
             // If the key is an escape, we discard the draft if it is empty
             if (event.keyCode === 27) {
-                $.concierge.trigger({ type: "discard_if_empty", value: {}});
+                self.trigger("discard_if_empty", {});
                 return true;
             }
 
@@ -152,92 +106,173 @@
 
             // Keypress only has characters pressed, so we do not neet check for
             // arrow keys, or CTRL+C and other combinations
-            $.concierge.trigger({ type: "focus_thread", value: {}});
-
+            //self.trigger("focus_thread", { char: String.fromCharCode(event.keyCode) });
+            window.parent.focus();
         });
 
         // Initialize Highlighting Event
         $("body>*").not(".nb_sidebar").mouseup(function (event) {
-                var sel = rangy.getSelection();
+            var sel = rangy.getSelection();
 
-                if (sel.isCollapsed){
-                    $.concierge.trigger({ type: "discard_if_empty", value: {}});
-                    return;
-                }
+            if (sel.isCollapsed){
+                self.trigger("discard_if_empty", {});
+                return;
+            }
 
-                if (sel.containsNode($(".nb_sidebar")[0], true)) {
-                    $.concierge.trigger({ type: "discard_if_empty", value: {}});
-                    return;
-                }
+            // must call before applyToRanges, otherwise sel is gone
+            var element = event.target;
 
-                // must call before applyToRanges, otherwise sel is gone
-                var element = event.target;
+            if ($(element).hasClass("nb-comment-highlight")) {
+                element = ($(element).parents("*:not(.nb-comment-highlight)"))[0];
+            }
 
-                if ($(element).hasClass("nb-comment-highlight")) {
-                    element = ($(element).parents("*:not(.nb-comment-highlight)"))[0];
-                }
+            var range = sel.saveCharacterRanges(element);
 
-                var range = sel.saveCharacterRanges(element);
+            var target = getElementXPath(element);
 
-                var target = getElementXPath(element);
+            self.insertPlaceholderAnnotation(sel);
 
-                insertPlaceholderAnnotation(sel);
+            if ( $(element).attr("data_char") === undefined) {
+                // we have a problem
+                throw "targetdoes not have data_char attribute";
+            }
 
-                if ( $(element).attr("data_char") === undefined) {
-                    // we have a problem
-                    $.L("Error: target does not have data_char attribute", element);
-                }
-
-                $.concierge.trigger({
-                    type: "new_thread",
-                    value: {
-                        html5range:{
-                            path1: target,
-                            path2: range[0].backward,
-                            offset1: range[0].characterRange.start, 
-                            offset2: range[0].characterRange.end,
-                            apparent_height: parseInt($(element).attr("data_char"), 10) +
-                                Math.min(range[0].characterRange.start, range[0].characterRange.end)
-                        },
-                        suppressFocus: true
-                    }
-                });
-
-                sel.restoreCharacterRanges(element, range);
-
+            self.trigger("new_thread", {
+                html5range:{
+                    path1: target,
+                    path2: range[0].backward,
+                    offset1: range[0].characterRange.start, 
+                    offset2: range[0].characterRange.end,
+                    apparent_height: parseInt($(element).attr("data_char"), 10) +
+                        Math.min(range[0].characterRange.start, range[0].characterRange.end)
+                },
+                suppressFocus: true
             });
 
-        GLOB.pers.store.register({
-            update: function (action, payload, items_fieldname) {
-                var key;
+            sel.restoreCharacterRanges(element, range);
 
-                if (items_fieldname === "draft") {
-                    var draft;
-                    for (draft in payload.diff) { break; }
-
-                    if (action === "remove") {
-                        $(".nb-comment-highlight.nb-placeholder[id_item=" + draft + "]").contents().unwrap();
-                    } else if (action === "add") {
-                        $(".nb-comment-highlight.nb-placeholder").attr("id_item", draft);
-                    }
-
-                }
-
-                if (action === "remove" && items_fieldname === "location") {
-                    for (key in payload.diff) {
-                        $(".nb-comment-highlight[id_item=" + key + "]").contents().unwrap();
-                    }
-                }
-
-                if (action === "add" && items_fieldname === "html5location") {
-                    restoreBatch($.extend(true, {}, payload.diff), function(){ });
-                }
-
-        }}, {html5location: null, draft: null, location: null});
+        });
 
         // fix IE XPath implementation
         wgxpath.install();
 
+        return this;
+    };
+
+    NBHTML.prototype.restore = function(loc) {
+        var self = this;
+        var sel = rangy.getSelection();
+        sel.restoreCharacterRanges(
+            getElementsByXPath(document, loc.path1)[0], 
+            [{
+                backward: loc.path2 === "true",
+                characterRange: {
+                    start: loc.offset1,
+                    end: loc.offset2
+                }
+            }]
+        );
+        self.placeAnnotation(sel, loc);
+    };
+        
+    NBHTML.prototype.restoreBatch = function(object, callback) {
+        var self = this;
+        var start = (new Date()).getTime();
+        var fail = false;
+        var current;
+
+        for (var key in object) {
+            current = (new Date()).getTime();
+            if (current - start > 150) {
+                fail = true;
+                break;
+            }
+
+            self.restore(object[key]);
+            delete object[key];
+        }
+
+        if (fail) {
+            window.setTimeout(function() {
+                self.restoreBatch();
+            }, 10, object, callback);
+            return;
+        }
+        callback();
+    };
+
+    NBHTML.prototype.update = function(action, payload, items_fieldname) {
+        var self = this;
+        var key;
+        if (items_fieldname === "draft") {
+            var draft;
+            for (draft in payload.diff) { break; }
+
+            if (action === "remove") {
+                $(".nb-comment-highlight.nb-placeholder[id_item=" + draft + "]").contents().unwrap();
+            } else if (action === "add") {
+                $(".nb-comment-highlight.nb-placeholder").attr("id_item", draft);
+            }
+
+        }
+
+        if (action === "remove" && items_fieldname === "location") {
+            for (key in payload.diff) {
+                $(".nb-comment-highlight[id_item=" + key + "]").contents().unwrap();
+            }
+        }
+
+        if (action === "add" && items_fieldname === "html5location") {
+            self.restoreBatch($.extend(true, {}, payload.diff), function(){ });
+        }
+    };
+
+    NBHTML.prototype.listeners = {
+        page: function(event){
+            // _render();
+        }, 
+        note_hover: function(event){
+            $(".nb-comment-highlight[id_item="+event.value+"]").addClass("hovered");
+        }, 
+        note_out: function(event){
+            $(".nb-comment-highlight[id_item="+event.value+"]").removeClass("hovered");
+        }, 
+        visibility: function(event){
+            // TODO
+        },
+        select_thread: function(event){
+            $(".nb-comment-highlight.selected").removeClass("selected");
+            $(".nb-comment-highlight[id_item="+event.value+"]").addClass("selected");
+
+            var viewTop = $(window).scrollTop();
+
+            // use window.innerHeight if available,
+            // else use document.body.clientHeight,
+            // else use documentElement.clientHeight
+            var viewHeight =
+                window.innerHeight || document.body.clientHeight || window.document.documentElement.clientHeight;
+            var viewBottom =
+                viewTop +
+                (viewHeight) * 0.9;
+            var elementTop = $(".nb-comment-highlight[id_item="+event.value+"]").offset().top;
+
+            if (viewTop > elementTop || viewBottom < elementTop) {
+
+                $("body, html").animate({
+                    scrollTop: $(".nb-comment-highlight[id_item="+event.value+"]").offset().top - viewHeight / 4
+                });
+            }
+        }
+    };
+
+    NBHTML.prototype.trigger = function(name, value) {
+        var self = this;
+        self.transport.trigger(name, value);
+    };
+
+    NBHTML.prototype.concierge = function(name, arglist) {
+        var self = this;
+        self.transport.concierge(name, arglist);
     };
 
     // must be called only on inner-most element
@@ -247,7 +282,8 @@
 
     // TODO: refactor such that there is more code re-use between placeAnnotation
     // on the one hand, and insert/activatePlaceholderAnnotation on the other.
-    var placeAnnotation = function (selection, loc) {
+    NBHTML.prototype.placeAnnotation = function (selection, loc) {
+        var self = this;
         var uid = loc.id_location;
 
         // quit if annotation already placed
@@ -256,18 +292,20 @@
         }
 
         // apply nb-comment-fresh to ranges
-        cssApplier.applyToSelection(selection);
+        self.cssApplier.applyToSelection(selection);
         selection.removeAllRanges();
 
         // jQuery Treatment
-        $("span.nb-comment-fresh.nb-comment-highlight").removeClass("nb-comment-fresh").wrapInner('<span class="nb-comment-fresh" />');
+        $("span.nb-comment-fresh.nb-comment-highlight").
+            removeClass("nb-comment-fresh").
+            wrapInner('<span class="nb-comment-fresh" />');
         $("span.nb-comment-fresh")
             .addClass("nb-comment-highlight")
             .removeClass("nb-comment-fresh")
             .attr("id_item", uid)
             .hover(
-                function(){$.concierge.trigger({type:"note_hover", value: uid});},
-                function(){$.concierge.trigger({type:"note_out", value: uid});})
+                function(){ self.trigger("note_hover", uid); },
+                function(){ self.trigger("note_out", uid); })
             .click(
                 function (event) {
                     if (!rangy.getSelection().isCollapsed){ return;}
@@ -289,24 +327,27 @@
                             id = (id + 1) % ids.length;
                         }
 
-                        $.concierge.trigger({type:"select_thread", value: ids[id]});
+                        self.trigger("select_thread", ids[id]);
                         lastClicked = {set: ids, clicked: ids[id]};
 
                     } else {
-                        $.concierge.trigger({type:"select_thread", value: uid});
-                        lastClicked = {set: [uid], clicked: uid};
+                        self.trigger("select_thread", uid);
                     }
                     event.stopPropagation();
-            });
+                });
     };
 
-    var insertPlaceholderAnnotation = function (selection) {
+    NBHTML.prototype.insertPlaceholderAnnotation = function (selection) {
+        var self = this;
+
         // apply nb-comment-fresh to ranges
-        cssApplier.applyToSelection(selection);
+        self.cssApplier.applyToSelection(selection);
         selection.removeAllRanges();
 
         // jQuery Treatment
-        $("span.nb-comment-fresh.nb-comment-highlight").removeClass("nb-comment-fresh").wrapInner('<span class="nb-comment-fresh" />');
+        $("span.nb-comment-fresh.nb-comment-highlight").
+            removeClass("nb-comment-fresh").
+            wrapInner('<span class="nb-comment-fresh" />');
         $("span.nb-comment-fresh")
             .addClass("nb-comment-highlight")
             .addClass("nb-placeholder")
@@ -320,7 +361,7 @@
         }, 250);
     };
 
-    GLOB.html.clearAnnotations = function () {
+    NBHTML.prototype.clearAnnotations = function () {
         $(".nb-comment-highlight").contents().unwrap();
     };
 
@@ -408,4 +449,9 @@
         return nodes;
     };
 
-})(NB);
+    ///------------------///
+    NB$(function () {
+        var html = new NBHTML();
+    });
+
+})(NB$);
