@@ -120,7 +120,12 @@ def source(req, n, allow_guest=False):
         return __serve_page(req, settings.YOUTUBE_TEMPLATE, allow_guest , mimetype="text/html")
     elif source.type==M.Source.TYPE_HTML5:
         #return HttpResponseRedirect(M.HTML5Info.objects.get(source=source).url)
-        return __serve_page(req, settings.HTML_TEMPLATE, allow_guest, mimetype="text/html")
+        response = __serve_page(req, settings.HTML_TEMPLATE, allow_guest, mimetype="text/html")
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET"
+        response["Access-Control-Max-Age"] = "1000"
+        response["Access-Control-Allow-Headers"] = "*"
+        return response
     else:
         return __serve_page(req, settings.SOURCE_TEMPLATE, allow_guest, mimetype="text/html")
 

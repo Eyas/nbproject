@@ -180,6 +180,23 @@ module.exports = function(grunt) {
         servername: servername
     };
 
+    TARGETS.BOOKMARKLET = {
+        src_js: [].concat(
+            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js"]),
+            MODS.RANGY.src_js,
+            addPrefix(MODULE_DIR, ["wgxpath/wgxpath.install.js"]),
+            addPrefix(MODULE_DIR + "wgxpath/", ["termfix.js"]),
+            addPrefix(MODULE_DIR, ["dev/buildBookmarklet.js", "dev/iframetransport.js", "dev/docviewHtml5.js"])
+        ),
+        dest_js: DEST_DIR+"bookmarklet_NB.js", 
+        src_css: [].concat(
+            addPrefix(MODULE_DIR, ["dev/buildEmbed.css"])
+        ),
+        dest_css:  DEST_DIR+"bookmarklet_NB.css",
+        servername: servername
+
+    };
+
     TARGETS.HTMLVIEWER = {
         src_js: [].concat(
             addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js", "jquery_ui/jquery-ui-1.9.2.custom/js/jquery-ui-1.9.2.custom.min.js", "dev/ui.concierge.js", "dev/iframetransport.js"]), 

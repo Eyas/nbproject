@@ -16,11 +16,25 @@
         _create: function() {
             $.ui.view.prototype._create.call(this);
             var self = this;
-            var $iframe = $("<iframe>");
-            self.element.append($iframe);
-            self.iframe = $iframe[0];
+
+            var target;
+
+            if (self.options.display_iframe) {
+                var $iframe = $("<iframe>");
+                self.element.append($iframe);
+                self.iframe = $iframe[0];
+                target = function() {
+                    return self.iframe.contentWindow;
+                };
+            } else {
+                target = function() {
+                    return window.parent;
+                };
+            }
+
             self.element.addClass("htmlView");
-            self.transport = new $.NBMessager(self.iframe, function (event) {
+
+            self.transport = new $.NBMessager(target, self.options.display_iframe, function (event) {
                 // event:
                 //   o type = {trigger | update | concierge}
                 //   o body
@@ -134,7 +148,9 @@
             var file = model.o.file[id_source];
             var url = model.get("html5info", {}).first().url;
 
-            self.iframe.src = url;
+            if (self.iframe) {
+                self.iframe.src = url;
+            }
 
         }, 
         _render: function(){
@@ -146,6 +162,7 @@
     $.widget("ui.docViewHtml",V_OBJ );
     $.ui.docViewHtml.prototype.options = {
         server_url: null,
+        display_iframe: null,
         loc_sort_fct: function (o1, o2) {
             return o1.top - o2.top;
         },

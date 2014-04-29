@@ -38,81 +38,133 @@
     
         //Factories: methods called if an event calls for a function that's not yet present
         $.concierge.addFactory("file", "doc_viewer", function(id){
-                var pers_id        = "pers_"+id;
-                var $vp = $("<div class='nb-viewport'><div class='nb-widget-header' style='height:24px;' /></div>").prependTo("body");
-                var $pers        = $("<div id='"+pers_id+"'/>").appendTo($vp);
-                var docview        =  {
-                    priority: 1, 
-                    min_width: 950, 
-                    desired_width: 50, 
-                    content: function($div){
-                        $div.docViewHtml({ server_url: GLOB.pers.server_url });
-                        $div.docViewHtml("set_model",GLOB.pers.store );
+            var pers_id        = "pers_"+id;
+            var $vp = $("<div class='nb-viewport'><div class='nb-widget-header' style='height:24px;' /></div>").prependTo("body");
+            var $pers        = $("<div id='"+pers_id+"'/>").appendTo($vp);
+            var docview        =  {
+                priority: 1, 
+                min_width: 950, 
+                desired_width: 50, 
+                content: function($div){
+                    $div.docViewHtml({
+                        server_url: GLOB.pers.server_url,
+                        display_iframe: (window.parent === window)
+                        });
+                    $div.docViewHtml("set_model",GLOB.pers.store );
+                }
+            };
+            var notesview    =  {
+                priority: 1, 
+                min_width: 650, 
+                desired_width: 35, 
+                min_height: 1000, 
+                desired_height: 50, 
+                content: function($div){
+                    $div.notepaneView();
+                    $div.notepaneView("set_model",GLOB.pers.store );
+                }
+            }; 
+            var threadview    = {
+                priority: 1, 
+                min_width: 650, 
+                desired_width: 35,  
+                min_height: 1000, 
+                desired_height: 50, 
+                content: function($div){
+                    var opts = {};
+                    if ("cl" in  GLOB.pers.params){
+                        opts["commentLabels"]=true;
                     }
-                };
-                var notesview    =  {
-                    priority: 1, 
-                    min_width: 650, 
-                    desired_width: 35, 
-                    min_height: 1000, 
-                    desired_height: 50, 
-                    content: function($div){
-                        $div.notepaneView();
-                        $div.notepaneView("set_model",GLOB.pers.store );
-                    }
-                }; 
-                var threadview    = {
-                    priority: 1, 
-                    min_width: 650, 
-                    desired_width: 35,  
-                    min_height: 1000, 
-                    desired_height: 50, 
-                    content: function($div){
-                        var opts = {};
-                        if ("cl" in  GLOB.pers.params){
-                            opts["commentLabels"]=true;
-                        }
-                        $div.threadview(opts);
-                        $div.threadview("set_model",GLOB.pers.store );                
-                    }
-                };
-                var editorview    =  {
-                    priority: 1, 
-                    min_width: 650, 
-                    desired_width: 35,  
-                    min_height: 1000, 
-                    desired_height: 50, 
-                    transcient: true,  
-                    content: function($div){
-                        var m = GLOB.pers.store;
-                        var ensemble = m.o.ensemble[m.o.file[id].id_ensemble];                    
-                        $div.editorview({allowStaffOnly: ensemble.allow_staffonly, allowAnonymous: ensemble.allow_anonymous});
-                        $div.editorview("set_model",GLOB.pers.store );                
-                    }
-                };
-                $pers.perspective({
-                        height: function(){return $vp.height() - $pers.offset().top;}, 
-                            listens: {
-                            page_peek: function(evt){
-                                //need to add 1 value for uniqueness
-                                $.concierge.logHistory("page", evt.value+"|"+id+"|"+(new Date()).getTime());
+                    $div.threadview(opts);
+                    $div.threadview("set_model",GLOB.pers.store );                
+                }
+            };
+            var editorview    =  {
+                priority: 1, 
+                min_width: 650, 
+                desired_width: 35,  
+                min_height: 1000, 
+                desired_height: 50, 
+                transcient: true,  
+                content: function($div){
+                    var m = GLOB.pers.store;
+                    var ensemble = m.o.ensemble[m.o.file[id].id_ensemble];                    
+                    $div.editorview({allowStaffOnly: ensemble.allow_staffonly, allowAnonymous: ensemble.allow_anonymous});
+                    $div.editorview("set_model",GLOB.pers.store );                
+                }
+            };
+
+            var views;
+            if (window.parent === window) {
+                views = {
+                    v1: { 
+                        data: docview
+                    },
+                    v2: {
+                        children: {
+                            v1:{
+                                data: notesview
                             }, 
-                                close_view: function(evt){
-                                if (evt.value === this.l.element[0].id){
-                                    delete($.concierge.features.doc_viewer[id]);
+                            v2:{ 
+                                children: {
+                                    v1: {
+                                        data: threadview
+                                    },
+                                    v2: {
+                                        data: editorview
+                                    },
+                                    orientation: "horizontal"
                                 }
-                                $.L("closeview: ", evt, this.l.element[0].id);
-                            }                    
-                        }, 
-                            views: {
-                            v1:{ data: docview }, 
-                                v2:{children: {
-                                    v1:{ data: notesview}, 
-                                        v2:{children: {v1: { data: threadview}, v2: {data: editorview}, orientation: "horizontal"}},  orientation: "horizontal"
-                                                                                                                                          }
-                            }, orientation: "vertical"}
-                    });
+                            },  orientation: "horizontal"
+                        }
+                    },
+                    orientation: "vertical"
+                };
+
+            } else {
+                views = {
+                    v1:{
+                        data: notesview
+                    }, 
+                    v2:{ 
+                        children: {
+                            v1: {
+                                data: threadview
+                            },
+                            v2: {
+                                data: editorview
+                            },
+                            orientation: "horizontal"
+                        }
+                    },
+                    orientation: "horizontal"
+                };
+                var $docv = $("<div>").css({
+                    "display": "none"
+                });
+                $docv.appendTo("body");
+                docview.content($docv);
+
+            }
+
+            $pers.perspective({
+                height: function(){return $vp.height() - $pers.offset().top;}, 
+                listens: {
+                    page_peek: function(evt){
+                        //need to add 1 value for uniqueness
+                        $.concierge.logHistory("page", evt.value+"|"+id+"|"+(new Date()).getTime());
+                    }, 
+                    close_view: function(evt){
+                        if (evt.value === this.l.element[0].id){
+                            delete($.concierge.features.doc_viewer[id]);
+                        }
+                        $.L("closeview: ", evt, this.l.element[0].id);
+                    }                    
+                }, 
+                views: views
             });
+
+        });
     
         //get data: 
         GLOB.pers.call("getGuestFileInfo", {id_source: GLOB.pers.id_source}, GLOB.pers.createStore, GLOB.pers.on_fileinfo_error );
