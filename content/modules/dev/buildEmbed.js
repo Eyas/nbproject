@@ -31,5 +31,17 @@ var NB$ = jQuery.noConflict();
         var server_url = server_info[1] + "://" + server_info[2];
 
         add_css(server_url + "/content/compiled/embed_NB.css");
+
+        if (window === window.top) {
+            NB$("<div>").css({
+                "position": "fixed",
+                "top": "0",
+                "right": "0",
+                "font-weight": "bold",
+                "font-size": "1.5em"
+            }).
+                html("<a href=\"" + server_url + "/url/" + encodeURI(window.location.href) + "\">View on NB</a>").
+                appendTo("body");
+        }
     });
 })();

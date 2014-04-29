@@ -37,6 +37,10 @@
                 // concierge body:
                 //      * name
                 //      * arglist
+
+                // data_request body:
+                //      * name
+                //      * value
                 switch (event.type) {
                     case "trigger":
                         $.concierge.trigger({type: event.body.type, value: event.body.value});
@@ -46,13 +50,33 @@
                     case "concierge":
                         $.concierge[event.body.name].apply($.concierge, event.body.arglist);
                         break;
+                    case "data_request":
+                        if (event.body.name === "urls") {
+                            $.concierge.get_component("urls")(event.body.value, function (result) {
+                                var convert = {};
+                                var url, files, file_id;
+
+                                for (url in result) {
+                                    files = [];
+                                    for (file_id in result[url].files) {
+                                        files.push(file_id);
+                                    }
+                                    if (files.length === 0) {
+                                        continue;
+                                    }
+                                    if (files.length === 1) {
+                                        convert[url] = self.options.server_url + "/f/" + files[0];
+                                    } else {
+                                        convert[url] = self.options.server_url + "/url/" + encodeURI(url);
+                                    }
+                                }
+                                self.transport.trigger("update_urls", convert);
+                            });
+                        }
+                        break;
                     default:
                         throw "unexpected " + event.type;
                 }
-            });
-            $(window).focus(function () {
-                window.console.log("Window Focused");
-                $.concierge.trigger({ type: "focus_thread", value: {} });
             });
         },
         _defaultHandler: function(evt){
@@ -85,7 +109,7 @@
             var id_source = $.concierge.get_state("file");
             self._id_source =  id_source; 
             self._model =  model;
-
+            self.transport.trigger("get_file", id_source);
             self._generate_contents();
 
             if (init_event){
@@ -121,6 +145,7 @@
     
     $.widget("ui.docViewHtml",V_OBJ );
     $.ui.docViewHtml.prototype.options = {
+        server_url: null,
         loc_sort_fct: function (o1, o2) {
             return o1.top - o2.top;
         },

@@ -46,7 +46,7 @@
                     min_width: 950, 
                     desired_width: 50, 
                     content: function($div){
-                        $div.docViewHtml();
+                        $div.docViewHtml({ server_url: GLOB.pers.server_url });
                         $div.docViewHtml("set_model",GLOB.pers.store );
                     }
                 };
@@ -118,14 +118,17 @@
         GLOB.pers.call("getGuestFileInfo", {id_source: GLOB.pers.id_source}, GLOB.pers.createStore, GLOB.pers.on_fileinfo_error );
         $.concierge.addConstants({res: 288, scale: 25, QUESTION: 1, STAR: 2 });
         $.concierge.addComponents({
-                set_comment_label: function(P,cb){
-                    GLOB.pers.call("set_comment_label", P, cb);
-                },
-                notes_loader:    function(P, cb){GLOB.pers.call("getNotes", P, cb);}, 
-                    note_creator:    function(P, cb){GLOB.pers.call("saveNote", P, cb);},
-                    note_editor:    function(P, cb){GLOB.pers.call("editNote", P, cb);},
-                    commentlabels_loader:    function(P, cb){GLOB.pers.call("getCommentLabels", P, cb);}                    
-            });   
+            set_comment_label: function (P, cb) {
+                GLOB.pers.call("set_comment_label", P, cb);
+            },
+            notes_loader:    function(P, cb){GLOB.pers.call("getNotes", P, cb);}, 
+            note_creator:    function(P, cb){GLOB.pers.call("saveNote", P, cb);},
+            note_editor:    function(P, cb){GLOB.pers.call("editNote", P, cb);},
+            commentlabels_loader: function (P, cb) {
+                GLOB.pers.call("getCommentLabels", P, cb);
+            },
+            urls: function (P, cb) { GLOB.pers.call("getHTML5Infos", P, cb);}
+        });
     };
     
     GLOB.pers.createStore = function(payload){

@@ -35,6 +35,7 @@ __EXPORTS = [
     "getGuestFileInfo", 
     "getSectionsInfo", 
     "getHTML5Info",
+    "getHTML5Infos",
     "markNote", 
     "request_source_id",
     "log_history",
@@ -274,20 +275,17 @@ def getGuestFileInfo(payload, req):
 def getHTML5Info(payload, req):
     if "url" not in payload: 
         return UR.prepare_response({}, 1, "missing url !")
-    url = payload["url"].partition("#")[0] #remove hash part of the URL by default. 
-    #TODO: use optional argument id_ensemble to disambiguate if provided. 
-    sources_info = M.HTML5Info.objects.filter(url=url)
-    ownerships =  M.Ownership.objects.select_related("source", "ensemble", "folder").filter(source__html5info__in=sources_info, deleted=False)
-    output = {
-         "files": UR.qs2dict(ownerships, annotations.__NAMES["files2"] , "ID"),
-         "ensembles": UR.qs2dict(ownerships, annotations.__NAMES["ensembles2"] , "ID") ,
-         "folders": UR.qs2dict(ownerships, annotations.__NAMES["folders2"] , "ID") ,
-         }    
-    for i in output["ensembles"]: 
-        if  not (output["ensembles"][i]["allow_guest"] or  auth.isMember(UR.getUserId(req), i)): 
-            return  UR.prepare_response({}, 1, "not allowed: guest access isn't allowed for this file.")
+    output = annotations.get_urlinfo(UR.getUserId(req), payload["url"])
     return UR.prepare_response(output)
 
+def getHTML5Infos(payload, req):
+    if "urls" not in payload:
+        return UR.prepare_response({}, 1, "missing urls !")
+    response = {}
+    for url in payload["urls"]:
+        o = annotations.get_urlinfo(UR.getUserId(req), url)
+        response[url] = o
+    return UR.prepare_response(response)
 
 def getObjects(payload, req):
     #

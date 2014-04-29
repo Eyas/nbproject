@@ -29,7 +29,7 @@
             if (event.type === "trigger") {
 
                 if (event.body.type in self.listeners) {
-                    (self.listeners[event.body.type])(event.body);
+                    (self.listeners[event.body.type]).call(self, event.body);
                 }
 
             } else if (event.type === "update") {
@@ -48,18 +48,12 @@
                 }
                 timerID = window.setTimeout(function(){
                     if (self.get_file) {
-                        var send_value = {
-                            log_event: "scrolling",
-                            log_value: [
-                                "s",
-                                $("html").scrollTop(), $(window).height(),
-                                _scrollCounter++,
-                                $("body").height(),
-                                self.get_file
-                            ].join(",")
-                        };
+                        var arglist = [
+                            "scrolling",
+                            ["s", $("html").scrollTop(), $(window).height(), _scrollCounter++, $("body").height(), self.get_file ].join(",")
+                        ];
 
-                        self.trigger("logHistory", send_value);
+                        self.concierge("logHistory", arglist);
                     }
                 }, 300);               
             _scrollTimerID =  timerID;
@@ -68,9 +62,6 @@
         // Wrap elements with nb-comment-fresh which is then selected by jQuery and operated on properly;
         // the styled element must have an nb-comment-highlight class.
         self.cssApplier = rangy.createCssClassApplier("nb-comment-fresh", { normalize: true });
-
-        // Make sure concierge won't steal our keys!
-        //$.concierge.keydown_block = false;
 
         // Global key-down monitor
         //$(document).keydown(function (event) {
@@ -160,6 +151,17 @@
 
         });
 
+        // "Fix" all URLs to navigate top window
+        var urls = [];
+        $("a[href]").not("[target=_blank]").each(function () {
+            if (this.href.replace(/#.*$/, "") === window.location.href.replace(/#.*$/, "")) {
+                return;
+            }
+            $(this).attr("target", "_top");
+            urls.push(this.href);
+        });
+        self.transport.request_data("urls", { urls: urls});
+
         // fix IE XPath implementation
         wgxpath.install();
 
@@ -235,6 +237,9 @@
     };
 
     NBHTML.prototype.listeners = {
+        get_file: function(event) {
+            this.get_file = event.get_file;
+        },
         page: function(event){
             // _render();
         }, 
@@ -269,6 +274,14 @@
                     scrollTop: $(".nb-comment-highlight[id_item="+event.value+"]").offset().top - viewHeight / 4
                 });
             }
+        },
+        update_urls: function (event) {
+            $("a[href]").each(function () {
+                var href = this.href;
+                if (href in event.value) {
+                    $(this).attr("href", event.value[href]);
+                }
+            });
         }
     };
 

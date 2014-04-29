@@ -1,0 +1,16 @@
+{% extends "web/base.html" %}
+{% block title %}Choose a File to Continue{% endblock %}
+{% block style %}
+
+{% endblock %}
+{% block content %}
+
+<p>The NB URL you selected is associated with multiple groups that you have access to. Please select one of the groups below to open the appropriate version of the file:</p>
+
+<ul>
+    {% for o in ownerships %}
+    <li><a href="/f/{{o.source.id}}">{{o.source.title}}</a> in group <a>{{o.ensemble.name}}</a>.</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

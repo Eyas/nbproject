@@ -55,6 +55,17 @@
         return (use_json) ? JSON.stringify(send_event) : send_event;
     };
 
+    var construct_data_request = function (name, value) {
+        var send_event = {
+            type: "data_request",
+            body: {
+                name: name,
+                value: value
+            }
+        };
+        return (use_json) ? JSON.stringify(send_event) : send_event;
+    };
+
     var IFrameMessager = function (listener) {
 
         if (window.parent === window) {
@@ -76,6 +87,11 @@
 
         this.concierge = function (name, arglist) {
             var message = construct_concierge_call(name, arglist);
+            window.parent.postMessage(message, "*");
+        };
+
+        this.request_data = function (name, value) {
+            var message = construct_data_request(name, value);
             window.parent.postMessage(message, "*");
         };
 

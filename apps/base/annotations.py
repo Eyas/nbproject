@@ -355,7 +355,33 @@ def get_guestfileinfo(id_source):
         elif ownership[0].source.type == M.Source.TYPE_HTML5:
             o["html5infos"]= UR.model2dict(ownership[0].source.html5info, None, "id")
     return o
-   
+
+def get_urlinfo_raw(uid, url):
+    url = url.partition("#")[0] #remove hash part of the URL by default. 
+    sources_info = M.HTML5Info.objects.filter(url=url)
+    
+    my_memberships = M.Membership.objects.filter(user__id=uid,  deleted=False)
+    my_ensembles = M.Ensemble.objects.filter(membership__in=my_memberships)
+
+    ownerships =  M.Ownership.objects.select_related("source", "ensemble", "folder").\
+                 filter(source__html5info__in=sources_info, deleted=False)
+    
+    if uid == None:
+        ownerships = ownerships.\
+                     filter(ensemble__allow_guest=True)
+    else:
+        ownerships = ownerships.\
+                     filter(Q(ensemble__in=my_ensembles) | Q(ensemble__allow_guest=True))
+    return ownerships
+
+def get_urlinfo(uid, url):
+    ownerships = get_urlinfo_raw(uid, url)
+    return {
+        "files": UR.qs2dict(ownerships, __NAMES["files2"] , "ID"),
+        "ensembles": UR.qs2dict(ownerships, __NAMES["ensembles2"], "ID"),
+        "folders": UR.qs2dict(ownerships, __NAMES["folders2"], "ID"),
+        }
+
 def get_files(uid, payload):
     id = payload["id"] if "id" in payload else None
     names = __NAMES["files2"]

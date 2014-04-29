@@ -123,7 +123,14 @@ def source(req, n, allow_guest=False):
         return __serve_page(req, settings.HTML_TEMPLATE, allow_guest, mimetype="text/html")
     else:
         return __serve_page(req, settings.SOURCE_TEMPLATE, allow_guest, mimetype="text/html")
-    
+
+def urlpicker(req, url, allow_guest=False):
+    uid = UR.getUserId(req)
+    result = annotations.get_urlinfo_raw(uid, url)
+    if len(result) == 1:
+        sid = result[0].source.id
+        return HttpResponseRedirect("/f/%s" % (sid,))
+    return render_to_response("web/url_picker.html", {"ownerships": result})
 
 def your_settings(req): 
     return __serve_page(req, 'web/your_settings.html', mimetype="text/html")
