@@ -1,5 +1,4 @@
-(function($){
-
+(function ($) {
     var _scrollTimerID=null;
     var _scrollCounter=0;
 
@@ -8,6 +7,7 @@
     var NBHTML = function() {
         var self = this;
         self.id = "docviewHtml5";
+        self.$textarea = $("<textarea>").css({"opacity": "0", "position": "fixed", "top": "50px", "left": "50px", "z-index": -5}).appendTo( $("body") );
 
         var countChildChars = function(_char, _this) {
             var char = _char;
@@ -47,20 +47,20 @@
                     _scrollTimerID =  null;
                 }
                 timerID = window.setTimeout(function(){
+                    if (self.get_file) {
+                        var send_value = {
+                            log_event: "scrolling",
+                            log_value: [
+                                "s",
+                                $("html").scrollTop(), $(window).height(),
+                                _scrollCounter++,
+                                $("body").height(),
+                                self.get_file
+                            ].join(",")
+                        };
 
-                    var send_value = {
-                        log_event: "scrolling",
-                        log_value: [
-                            "s",
-                            $("html").scrollTop(),$(window).height(),
-                            _scrollCounter++,
-                            $("body").height(),
-                            self.concierge("get_state", ["file"])
-                        ].join(",")
-                    };
-
-                    self.trigger("logHistory", send_value);
-
+                        self.trigger("logHistory", send_value);
+                    }
                 }, 300);               
             _scrollTimerID =  timerID;
         });
@@ -73,7 +73,8 @@
         //$.concierge.keydown_block = false;
 
         // Global key-down monitor
-        $(document).keydown(function(event) {
+        //$(document).keydown(function (event) {
+        $(document).on('keypress keyup keydown', function(event) {
             // If there are no current drafts, we don't interfere.
             if ($(".nb-placeholder").length === 0) {
                 return true;
@@ -98,16 +99,22 @@
             }
 
             // If the key is not a chracter, do not interfere.
-            if (event.keyCode < 48 ||
-               (event.keyCode > 90 && event.keyCoe < 96) ||
+            if (event.keyCode !== 13 && event.keyCode < 48 ||
+               (event.keyCode > 90 && event.keyCode < 96) ||
                (event.keyCode > 111 && event.keyCode < 186)) {
                 return true;
             }
 
             // Keypress only has characters pressed, so we do not neet check for
             // arrow keys, or CTRL+C and other combinations
-            //self.trigger("focus_thread", { char: String.fromCharCode(event.keyCode) });
-            window.parent.focus();
+            self.trigger("focus_thread", {});
+            if (event.keyCode !== 13) {
+                self.$textarea.focus();
+                window.setTimeout(function () {
+                    self.trigger("forward_to_editor", { content: self.$textarea.val() });
+                    self.$textarea.val("");
+                }, 50);
+            }
         });
 
         // Initialize Highlighting Event

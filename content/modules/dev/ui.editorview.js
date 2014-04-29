@@ -29,6 +29,8 @@
                 var me            = $.concierge.get_component("get_userinfo")();
                 var guest_msg    = "<span>You need to <a href='javascript:"+$str+".concierge.get_component(\"register_user_menu\")()'>register</a>  or  <a href='javascript:"+$str+".concierge.get_component(\"login_user_menu\")()'>login</a> in order to post a reply...</span>";
                 var id_item, draft, drafts;
+                var $textarea = $("textarea", self.element);
+
                 switch (evt.type){
                 case "new_thread":
                     if (me.guest === 1){
@@ -118,9 +120,11 @@
                     break;
                 case "focus_thread":
                     // We assume the thread is already rendered, we simply focus
-                    var $textarea = $("textarea", self.element);
                     $textarea.focus();
                     break;
+                case "forward_to_editor":
+                    $textarea.val( $textarea.val() + evt.value.content );
+                break;
                 case "discard_if_empty":
                     // only allow one current editor if draft is not empty
                     if (self.element.children().length){
@@ -327,7 +331,8 @@
             reply_thread: null, 
             edit_thread: null,
             focus_thread: null,
-            discard_if_empty: null
+            discard_if_empty: null,
+            forward_to_editor: null
         },
         id_source: null, 
         note: null, 

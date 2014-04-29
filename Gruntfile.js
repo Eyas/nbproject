@@ -166,14 +166,11 @@ module.exports = function(grunt) {
 
     TARGETS.EMBED = {
         src_js: [].concat(
-            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js", "dev/ui.concierge.js", "dev/iframetransport.js"]),
+            addPrefix(MODULE_DIR, ["jquery/1.8.3/jquery.min.js"]),
             MODS.RANGY.src_js,
             addPrefix(MODULE_DIR, ["wgxpath/wgxpath.install.js"]),
             addPrefix(MODULE_DIR + "wgxpath/", ["termfix.js"]),
-            TARGETS.API.src_js,
-            addPrefix(UI_DIR, ["conf.js", "conf_local.js"]),
-            addPrefix(MODULE_DIR, ["dev/pers.js"]),
-            addPrefix(MODULE_DIR, ["dev/docviewHtml5.js", "dev/buildEmbed.js"])
+            addPrefix(MODULE_DIR, ["dev/buildEmbed.js", "dev/iframetransport.js", "dev/docviewHtml5.js"])
         ),
         dest_js: DEST_DIR+"embed_NB.js", 
         src_css: [].concat(
