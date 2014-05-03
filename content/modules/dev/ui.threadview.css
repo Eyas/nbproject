@@ -6,9 +6,10 @@ License:  Copyright (c) 2010-2012 Massachusetts Institute of Technology.
 
 
 div.threadview{
-overflow-y: auto;
-//background-color: #E6E6E6 !important;
-//font-size: small;
+    overflow-y: auto;
+    border-width: 0 1px 0 1px;
+    border-style: solid;
+    border-color: #DDD;
 }
 
 div.threadview-branch{
@@ -27,12 +28,7 @@ div.threadview div.lens-odd {
 div.threadview-pane{
     padding-right: 8px;
     padding-bottom: 20px;
-    border-width: 0 1px 0 1px;
-    border-style: solid;
-    border-color: #DDD;
 }
-
-
 
 div.threadview div.note-lens{
 padding-top: 5px;

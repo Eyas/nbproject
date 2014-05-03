@@ -4,10 +4,18 @@
 
     var lastClicked = {set: [], clicked: null};
 
-    var NBHTML = function() {
+    var NBHTML = function(isParent) {
         var self = this;
         self.id = "docviewHtml5";
-        self.$textarea = $("<textarea>").css({"opacity": "0", "position": "fixed", "top": "50px", "left": "50px", "z-index": -5}).appendTo( $("body") );
+        self.isParent= isParent;
+        self.$textarea = $("<textarea>").
+            css({
+                "opacity": "0",
+                "position": "fixed",
+                "top": "50px",
+                "left": "50px",
+                "z-index": -5
+            }).appendTo( $("body") );
 
         var countChildChars = function(_char, _this) {
             var char = _char;
@@ -160,7 +168,10 @@
             $(this).attr("target", "_top");
             urls.push(this.href);
         });
-        self.transport.request_data("urls", { urls: urls});
+
+        if (self.isParent === false) {
+            self.transport.request_data("urls", { urls: urls});
+        }
 
         // fix IE XPath implementation
         wgxpath.install();
@@ -168,6 +179,7 @@
         return this;
     };
 
+    NBHTML.prototype.isParent = false;
     NBHTML.prototype.restore = function(loc) {
         var self = this;
         var sel = rangy.getSelection();
@@ -276,12 +288,15 @@
             }
         },
         update_urls: function (event) {
-            $("a[href]").each(function () {
-                var href = this.href;
-                if (href in event.value) {
-                    $(this).attr("href", event.value[href]);
-                }
-            });
+            var self = this;
+            if (self.isParent === false) {
+                $("a[href]").each(function () {
+                    var href = this.href;
+                    if (href in event.value) {
+                        $(this).attr("href", event.value[href]);
+                    }
+                });
+            }
         }
     };
 
@@ -397,6 +412,15 @@
         return text.replace(/\s+$/, "");
     };
 
+    // Singleton Pattern for NBHTML element creation
+    var myHtml;
+    $.makeHtml = function(isParent) {
+        if (myHtml) {
+            return;
+        }
+        myHtml = new NBHTML(isParent);
+    };
+
     // ************************************************************************************************
     // XPath
 
@@ -468,10 +492,5 @@
 
         return nodes;
     };
-
-    ///------------------///
-    NB$(function () {
-        var html = new NBHTML();
-    });
 
 })(NB$);
